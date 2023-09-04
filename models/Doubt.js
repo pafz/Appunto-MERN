@@ -16,6 +16,16 @@ const DoubtSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "User",
         },
+        imagePath: {
+            type: String,
+            required: true,
+            validate: {
+                validator: function (value) {
+                    return value !== null && value !== undefined && value.trim() !== "";
+                },
+                message: "Debe introducir una imagen",
+            },
+        },
     },
     {
         timestamps: true,

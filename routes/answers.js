@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.post("/", authentication, AnswerController.create);
 
+router.post("/answers/:answerId/like", AnswerController.likeAnswer);
+
 router.get("/all", authentication, AnswerController.getAllAnswers);
 
 router.put("/update", authentication, AnswerController.updateAnswer);

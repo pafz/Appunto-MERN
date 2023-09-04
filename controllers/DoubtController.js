@@ -1,5 +1,6 @@
 const Doubt = require("../models/Doubt");
 const User = require("../models/User");
+const upload = require("../middleware/upload");
 
 const DoubtController = {
     async createDoubt(req, res) {
@@ -14,10 +15,24 @@ const DoubtController = {
                 return res.status(400).send({ message: "Tenés que completar todos los campos" });
             }
 
-            const doubt = await Doubt.create({ ...req.body, _idUser: req.user._id });
-            await User.findByIdAndUpdate(req.user._id, { $push: { _idDoubt: doubt._id } });
+            let imagePath = ""; // inicializo la url de la imagen como un string vacio
 
-            res.status(201).send({ message: "Se ha creado tu consulta", doubt });
+            // uso el upload.single, para manejar la carga de la imagen
+            upload.single("image")(req, res, async function (err) {
+                if (err) {
+                    return res.status(400).send({ message: "Error al cargar la imagen" });
+                }
+
+                if (req.file) {
+                    // si se carga una imagen, actualizamos imagePath
+                    imagePath = `/uploads/${req.file.filename}`;
+                }
+
+                const doubt = await Doubt.create({ ...req.body, _idUser: req.user._id, imagePath });
+                await User.findByIdAndUpdate(req.user._id, { $push: { _idDoubt: doubt._id } });
+
+                res.status(201).send({ message: "Se ha creado tu consulta", doubt });
+            });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al crear la consulta" });

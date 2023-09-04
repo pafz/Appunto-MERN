@@ -40,6 +40,8 @@ const UserSchema = new mongoose.Schema(
         role: String,
 
         tokens: [],
+
+        avatar: String,
     },
     { timestamps: true }
 );

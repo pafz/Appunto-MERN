@@ -14,7 +14,7 @@ const AnswerController = {
                 return res.status(400).send({ message: "Debes completar todos los campos" });
             }
 
-            const answer = await Answer.create({ reply, likes, _idDoubt, _idUser: req.user._id });
+            const answer = await Answer.create({ reply, likes: 0, _idDoubt, _idUser: req.user._id });
             await Doubt.findByIdAndUpdate(_idDoubt, { $push: { _idAnswer: answer._id } });
             res.status(201).send({ message: "Respuesta creada exitosamente", answer });
         } catch (error) {
@@ -54,6 +54,22 @@ const AnswerController = {
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Hubo un problema al actualizar la respuesta" });
+        }
+    },
+
+    async likeAnswer(req, res) {
+        try {
+            const { answerId } = req.params;
+            const updatedAnswer = await Answer.findByIdAndUpdate(answerId, { $inc: { likes: 1 } }, { new: true });
+
+            if (!updatedAnswer) {
+                return res.status(404).send({ message: "No se encontró la respuesta" });
+            }
+
+            res.status(200).send({ message: "Has dado like a la respuesta", answer: updatedAnswer });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ message: "Hubo un problema al dar like a la respuesta" });
         }
     },
 

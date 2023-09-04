@@ -121,7 +121,39 @@ const UserController = {
         }
     },
 
+    async addAvatar(req, res) {
+        try {
+            if (!req.isAuthenticated()) {
+                return res.status(401).json({ message: "Usuario no autenticado" });
+            }
+
+            if (!req.file) {
+                return res.status(400).json({ error: "No se ha seleccionado ninguna imagen" });
+            }
+
+            let imagePath = ""; // inicializo la url de la imagen como un string vacio
+
+            // utilizao el middleware de multer para manejar la carga de la imagen
+            upload.single("avatar")(req, res, async function (err) {
+                if (err) {
+                    return res.status(400).json({ error: "Error al cargar la imagen" });
+                }
+
+                if (req.file) {
+                    // si se carga una imagen, se actualiza imagePath
+                    imagePath = `/uploads/${req.file.filename}`;
+                }
+
+                const updatedUser = await User.findByIdAndUpdate(req.user._id, { avatar: imagePath }, { new: true });
+                return res.status(200).json({ message: "Avatar cargado con éxito", user: updatedUser });
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Hubo un error al cargar el avatar" });
+        }
+    },
     async getUserByName(req, res) {
+        async;
         const UserName = req.params.name;
 
         try {
