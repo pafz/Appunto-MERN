@@ -12,6 +12,8 @@ router.post('/', authentication, AnswerController.create);
 
 router.post('/answers/:answerId/like', AnswerController.likeAnswer);
 
+router.post('/answers/:answerId/dislike', AnswerController.dislikeAnswer);
+
 router.get('/all', authentication, AnswerController.getAllAnswers);
 
 router.put('/update', authentication, AnswerController.updateAnswer);
