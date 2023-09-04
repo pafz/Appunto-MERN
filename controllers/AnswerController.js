@@ -1,5 +1,5 @@
 const Answer = require("../models/Answer");
-const Query = require("../models/Query");
+const Doubt = require("../models/Doubt");
 
 const AnswerController = {
     async create(req, res) {
@@ -8,14 +8,14 @@ const AnswerController = {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
-            const { reply, likes, _idQuery } = req.body;
+            const { reply, likes, _idDoubt } = req.body;
 
-            if (!reply || !likes || !_idQuery) {
+            if (!reply || !likes || !_idDoubt) {
                 return res.status(400).send({ message: "Debes completar todos los campos" });
             }
 
-            const answer = await Answer.create({ reply, likes, _idQuery, _idUser: req.user._id });
-            await Query.findByIdAndUpdate(_idQuery, { $push: { _idAnswer: answer._id } });
+            const answer = await Answer.create({ reply, likes, _idDoubt, _idUser: req.user._id });
+            await Doubt.findByIdAndUpdate(_idDoubt, { $push: { _idAnswer: answer._id } });
             res.status(201).send({ message: "Respuesta creada exitosamente", answer });
         } catch (error) {
             console.error(error);

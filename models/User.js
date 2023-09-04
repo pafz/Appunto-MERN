@@ -28,10 +28,10 @@ const UserSchema = new mongoose.Schema(
             default: false,
         },
 
-        _idQuery: [
+        _idDoubt: [
             {
                 type: Schema.Types.ObjectId,
-                ref: "Query",
+                ref: "Doubt",
             },
         ],
 

@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors());
 app.use("/users", require("./routes/users"));
 
-app.use("/queries", require("./routes/queries"));
+app.use("/doubts", require("./routes/doubts"));
 
 app.use("/answers", require("./routes/answers"));
 

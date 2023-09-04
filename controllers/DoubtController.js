@@ -1,8 +1,8 @@
-const Query = require("../models/Query");
+const Doubt = require("../models/Doubt");
 const User = require("../models/User");
 
-const QueryController = {
-    async createQuery(req, res) {
+const DoubtController = {
+    async createDoubt(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
@@ -14,89 +14,89 @@ const QueryController = {
                 return res.status(400).send({ message: "Tenés que completar todos los campos" });
             }
 
-            const query = await Query.create({ ...req.body, _idUser: req.user._id });
-            await User.findByIdAndUpdate(req.user._id, { $push: { _idQuery: query._id } });
+            const doubt = await Doubt.create({ ...req.body, _idUser: req.user._id });
+            await User.findByIdAndUpdate(req.user._id, { $push: { _idDoubt: doubt._id } });
 
-            res.status(201).send({ message: "Se ha creado tu consulta", query });
+            res.status(201).send({ message: "Se ha creado tu consulta", doubt });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al crear la consulta" });
         }
     },
 
-    async updateQuery(req, res) {
+    async updateDoubt(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
-            const updatedQuery = await Query.findOneAndUpdate({}, req.body, { new: true });
+            const updatedDoubt = await Doubt.findOneAndUpdate({}, req.body, { new: true });
 
-            if (!updatedQuery) {
+            if (!updatedDoubt) {
                 return res.status(404).send({ message: "No se encontró ninguna consulta para actualizar" });
             }
 
-            res.status(200).send({ message: "Consulta actualizada exitosamente", query: updatedQuery });
+            res.status(200).send({ message: "Consulta actualizada exitosamente", doubt: updatedDoubt });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al actualizar la consulta" });
         }
     },
 
-    async updateQueryById(req, res) {
+    async updateDoubtById(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
             const { _id } = req.params;
-            const updatedQuery = await Query.findByIdAndUpdate(_id, req.body, { new: true });
+            const updatedDoubt = await Doubt.findByIdAndUpdate(_id, req.body, { new: true });
 
-            if (!updatedQuery) {
+            if (!updatedDoubt) {
                 return res.status(404).send({ message: "La consulta no existe" });
             }
 
-            res.status(200).send({ message: "Consulta actualizada exitosamente", query: updatedQuery });
+            res.status(200).send({ message: "Consulta actualizada exitosamente", doubt: updatedDoubt });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al actualizar la consulta" });
         }
     },
 
-    async updateQueryByTopic(req, res) {
+    async updateDoubtByTopic(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
             const { topic } = req.params;
-            const updatedQuery = await Query.findOneAndUpdate({ topic }, req.body, { new: true });
-            console.log(updatedQuery);
+            const updatedDoubt = await Doubt.findOneAndUpdate({ topic }, req.body, { new: true });
+            console.log(updatedDoubt);
 
-            if (!updatedQuery) {
+            if (!updatedDoubt) {
                 return res.status(404).send({ message: "No se encontró ninguna consulta con ese tema" });
             }
 
-            res.status(200).send({ message: "Consulta actualizada exitosamente", query: updatedQuery });
+            res.status(200).send({ message: "Consulta actualizada exitosamente", doubt: updatedDoubt });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al actualizar la consulta" });
         }
     },
 
-    async getAllQueriesPagination(req, res) {
+    async getAllDoubtsPagination(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
-            const page = parseInt(req.query.page) || 1;
+            const page = parseInt(req.doubt.page) || 1;
             const limit = 2;
             const skip = (page - 1) * limit;
 
-            const queries = await Query.find().limit(limit).skip(skip);
+            const doubts = await Doubt.find().limit(limit).skip(skip);
 
-            res.status(200).send({ message: "Estás viendo las dudas con paginación de 2 en 2", queries });
+            res.status(200).send({ message: "Estás viendo las dudas con paginación de 2 en 2", doubts });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al obtener las consultas" });
@@ -105,7 +105,7 @@ const QueryController = {
 
     async getEverything(req, res) {
         try {
-            const queries = await Query.find()
+            const doubts = await Doubt.find()
                 .populate({
                     path: "_idUser",
                     select: "_id name",
@@ -120,71 +120,71 @@ const QueryController = {
                 })
                 .select("_id topic question _idAnswer");
 
-            res.status(200).send({ message: "Datos obtenidos exitosamente", queries });
+            res.status(200).send({ message: "Datos obtenidos exitosamente", doubts });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: "Error al obtener las dudas y respuestas" });
         }
     },
 
-    async markQueryAsResolved(req, res) {
+    async markDoubtAsResolved(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
-            const { queryId } = req.params;
+            const { doubtId } = req.params;
             const { resolved } = req.body;
 
             if (resolved === undefined) {
                 return res.status(400).send({ message: "Falta proporcionar el campo 'resolved'" });
             }
 
-            const query = await Query.findByIdAndUpdate(queryId, { resolved }, { new: true });
+            const doubt = await Doubt.findByIdAndUpdate(doubtId, { resolved }, { new: true });
 
-            if (!query) {
+            if (!doubt) {
                 return res.status(404).send({ message: "La consulta no existe" });
             }
 
-            res.status(200).send({ message: "La consulta se marcó como resuelta!", query });
+            res.status(200).send({ message: "La consulta se marcó como resuelta!", doubt });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al actualizar el estado de la consulta" });
         }
     },
 
-    async markQueryAsUnresolved(req, res) {
+    async markDoubtAsUnresolved(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
-            const { queryId } = req.params;
+            const { doubtId } = req.params;
 
-            const query = await Query.findByIdAndUpdate(queryId, { resolved: false }, { new: true });
+            const doubt = await Doubt.findByIdAndUpdate(doubtId, { resolved: false }, { new: true });
 
-            if (!query) {
+            if (!doubt) {
                 return res.status(404).send({ message: "La consulta no existe" });
             }
 
-            res.status(200).send({ message: "OK! La consulta fue marcada como no resuelta", query });
+            res.status(200).send({ message: "OK! La consulta fue marcada como no resuelta", doubt });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al actualizar el estado de la consulta" });
         }
     },
 
-    async deleteQuery(req, res) {
+    async deleteDoubt(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
-            const { queryId } = req.params;
+            const { doubtId } = req.params;
 
-            const deletedQuery = await Query.findByIdAndDelete(queryId);
+            const deletedDoubt = await Doubt.findByIdAndDelete(doubtId);
 
-            if (!deletedQuery) {
+            if (!deletedDoubt) {
                 return res.status(404).send({ message: "La consulta no existe" });
             }
 
@@ -196,4 +196,4 @@ const QueryController = {
     },
 };
 
-module.exports = QueryController;
+module.exports = DoubtController;

@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const Query = require("../models/Query");
+const Doubt = require("../models/Doubt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -30,9 +30,9 @@ const isTeacher = async (req, res, next) => {
 
 const isStudent = async (req, res, next) => {
     try {
-        const query = await Query.findById(req.body._idQuery);
+        const doubt = await Doubt.findById(req.body._idDoubt);
 
-        if (query._idUser.toString() !== req.user._id.toString()) {
+        if (doubt._idUser.toString() !== req.user._id.toString()) {
             return res.status(403).send({ message: "No puedes editar esta duda, no es tuya" });
         }
 

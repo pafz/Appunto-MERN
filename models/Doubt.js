@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const QuerySchema = new Schema(
+const DoubtSchema = new Schema(
     {
         topic: String,
         question: String,
@@ -22,6 +22,6 @@ const QuerySchema = new Schema(
     }
 );
 
-const Query = mongoose.model("Query", QuerySchema);
+const Doubt = mongoose.model("Doubt", DoubtSchema);
 
-module.exports = Query;
+module.exports = Doubt;
