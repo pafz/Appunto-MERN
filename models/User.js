@@ -18,11 +18,6 @@ const UserSchema = new mongoose.Schema(
             required: [true, "Por favor rellena tu contraseña"],
         },
 
-        age: {
-            type: Number,
-            required: [true, "Por favor rellena tu edad"],
-        },
-
         confirmed: {
             type: Boolean,
             default: false,
