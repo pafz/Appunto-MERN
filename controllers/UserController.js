@@ -126,10 +126,6 @@ const UserController = {
 
     async addAvatar(req, res) {
         try {
-            if (!req.isAuthenticated()) {
-                return res.status(401).json({ message: "Usuario no autenticado" });
-            }
-
             if (!req.file) {
                 return res.status(400).json({ error: "No se ha seleccionado ninguna imagen" });
             }
