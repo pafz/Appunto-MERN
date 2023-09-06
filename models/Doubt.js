@@ -18,13 +18,6 @@ const DoubtSchema = new Schema(
         },
         imagePath: {
             type: String,
-            required: true,
-            validate: {
-                validator: function (value) {
-                    return value !== null && value !== undefined && value.trim() !== "";
-                },
-                message: "Debe introducir una imagen",
-            },
         },
     },
     {

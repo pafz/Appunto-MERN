@@ -199,6 +199,7 @@ const UserController = {
     }
   },
 
+<<<<<<< HEAD
   async userAndDoubts(req, res) {
     try {
       const user = await User.findById(req.user._id).populate({
@@ -212,5 +213,58 @@ const UserController = {
         .send({ message: 'Ha habido un problema al obtener las dudas' });
     }
   },
+=======
+            if (!req.file) {
+                return res.status(400).json({ error: "No se ha seleccionado ninguna imagen" });
+            }
+
+            let imagePath = ""; // inicializo la url de la imagen como un string vacio
+
+            // utilizao el middleware de multer para manejar la carga de la imagen
+            upload.single("avatar")(req, res, async function (err) {
+                if (req.file) {
+                    // si se carga una imagen, se actualiza imagePath
+                    imagePath = `/uploads/${req.file.filename}`;
+                }
+
+                const updatedUser = await User.findByIdAndUpdate(req.user._id, { avatar: imagePath }, { new: true });
+                return res.status(200).json({ message: "Avatar cargado con éxito", user: updatedUser });
+            });
+        } catch (error) {
+            return res.status(500).json({ error: "Hubo un error al cargar el avatar" });
+        }
+    },
+    async getUserByName(req, res) {
+        async;
+        const UserName = req.params.name;
+
+        try {
+            const user = await User.find({ name: UserName });
+
+            if (user.length === 0) {
+                return res.status(404).send({ message: "No hay ningún usuario con ese nombre" });
+            }
+
+            res.status(200).send(user);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({
+                message: "Hubo un error al obtener los usuarios por su nombre",
+            });
+        }
+    },
+
+    async userAndDoubts(req, res) {
+        try {
+            const user = await User.findById(req.user._id).populate({
+                path: "_idDoubt",
+            });
+            res.status(200).send(user);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ message: "Ha habido un problema al obtener las dudas" });
+        }
+    },
+>>>>>>> 93d6e9a (Add changes in DoubtController)
 };
 module.exports = UserController;
