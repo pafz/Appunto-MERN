@@ -13,8 +13,10 @@ router.put("/update/:topic", authentication, isTeacher, DoubtController.updateDo
 router.put("/resolved/:doubtId", authentication, isStudent, DoubtController.markDoubtAsResolved);
 router.put("/unresolved/:doubtId", authentication, isStudent, DoubtController.markDoubtAsUnresolved);
 
-router.get("/page/doubts", authentication, isTeacher, DoubtController.getAllDoubtsPagination);
+router.get("/all/doubts", authentication, isTeacher, DoubtController.getAllDoubts);
 router.get("/all/all", authentication, isTeacher, DoubtController.getEverything);
+router.get("/:_id", authentication, isTeacher, DoubtController.getDoubtById);
+router.get("/:topic", authentication, isTeacher, DoubtController.getDoubtByTopic);
 
 router.delete("/doubts/:doubtId", authentication, DoubtController.deleteDoubt);
 

@@ -17,18 +17,18 @@ const DoubtController = {
 
             let imagePath = ""; // inicializo la url de la imagen como un string vacio
 
+            const doubtBody = req.body;
             // uso el upload.single, para manejar la carga de la imagen
             upload.single("image")(req, res, async function (err) {
                 if (req.file) {
                     // si se carga una imagen, actualizamos imagePath
                     imagePath = `/uploads/${req.file.filename}`;
                 }
-
-                const doubt = await Doubt.create({ ...req.body, _idUser: req.user._id, imagePath });
-                await User.findByIdAndUpdate(req.user._id, { $push: { _idDoubt: doubt._id } });
-
-                res.status(201).send({ message: "Se ha creado tu consulta", doubt });
             });
+            const doubt = await Doubt.create({ ...doubtBody, _idUser: req.user._id, imagePath });
+            await User.findByIdAndUpdate(req.user._id, { $push: { _idDoubt: doubt._id } });
+
+            res.status(201).send({ message: "Se ha creado tu consulta", doubt });
         } catch (error) {
             res.status(500).send({ message: "Ha habido un problema al crear la consulta" });
         }
@@ -94,22 +94,58 @@ const DoubtController = {
         }
     },
 
-    async getAllDoubtsPagination(req, res) {
+    async getAllDoubts(req, res) {
         try {
             if (!req.user) {
                 return res.status(401).send({ message: "No estás autenticado" });
             }
 
-            const page = parseInt(req.doubt.page) || 1;
-            const limit = 2;
-            const skip = (page - 1) * limit;
+            const doubts = await Doubt.find();
 
-            const doubts = await Doubt.find().limit(limit).skip(skip);
-
-            res.status(200).send({ message: "Estás viendo las dudas con paginación de 2 en 2", doubts });
+            res.status(200).send({ message: "Estás viendo todas las dudas", doubts });
         } catch (error) {
             console.error(error);
             res.status(500).send({ message: "Ha habido un problema al obtener las consultas" });
+        }
+    },
+
+    async getDoubtById(req, res) {
+        try {
+            if (!req.user) {
+                return res.status(401).send({ message: "No estás autenticado" });
+            }
+
+            const { _id } = req.params;
+            const doubt = await Doubt.findById(_id);
+
+            if (!doubt) {
+                return res.status(404).send({ message: "La duda no existe" });
+            }
+
+            res.status(200).send({ message: "Duda obtenida exitosamente", doubt });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ message: "Ha habido un problema al obtener la duda por ID" });
+        }
+    },
+
+    async getDoubtByTopic(req, res) {
+        try {
+            if (!req.user) {
+                return res.status(401).send({ message: "No estás autenticado" });
+            }
+
+            const { topic } = req.params;
+            const doubt = await Doubt.findOne({ topic });
+
+            if (!doubt) {
+                return res.status(404).send({ message: "No se encontró ninguna duda con ese topico" });
+            }
+
+            res.status(200).send({ message: "Duda obtenida exitosamente", doubt });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ message: "Ha habido un problema al obtener la duda por nombre" });
         }
     },
 
