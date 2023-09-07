@@ -39,7 +39,6 @@ const UserController = {
                 name,
                 email,
                 password: hashedPassword,
-                age,
                 points: 0,
                 role: "student",
                 tokens: [{ token: emailToken.toString() }],
