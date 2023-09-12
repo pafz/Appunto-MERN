@@ -15,9 +15,9 @@ router.put("/unresolved/:doubtId", authentication, isStudent, DoubtController.ma
 
 router.get("/all/doubts", authentication, isTeacher, DoubtController.getAllDoubts);
 router.get("/all/all", authentication, isTeacher, DoubtController.getEverything);
-router.get("/:_id", authentication, isTeacher, DoubtController.getDoubtById);
+router.get("/:_id", DoubtController.getDoubtById);
 router.get("/:topic", authentication, isTeacher, DoubtController.getDoubtByTopic);
 
-router.delete("/doubts/:doubtId", authentication, DoubtController.deleteDoubt);
+router.delete("/doubts/:doubtId", DoubtController.deleteDoubt);
 
 module.exports = router;

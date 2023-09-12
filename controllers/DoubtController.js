@@ -1,36 +1,26 @@
 const Doubt = require("../models/Doubt");
 const User = require("../models/User");
 const upload = require("../middleware/upload");
+const fs = require("fs");
 
 const DoubtController = {
     async createDoubt(req, res) {
         try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
-
             const { topic, question } = req.body;
 
             if (!topic || !question) {
                 return res.status(400).send({ message: "Tienes que completar todos los campos" });
             }
 
-            let imagePath = ""; // inicializo la url de la imagen como un string vacio
-
             const doubtBody = req.body;
-            // uso el upload.single, para manejar la carga de la imagen
-            upload.single("image")(req, res, async function (err) {
-                if (req.file) {
-                    // si se carga una imagen, actualizamos imagePath
-                    imagePath = `/uploads/${req.file.filename}`;
-                }
-            });
-            const doubt = await Doubt.create({ ...doubtBody, _idUser: req.user._id, imagePath });
+            const imagePath = req.file ? `/uploads/${req.file.filename}` : "";
+
+            const doubt = await Doubt.create({ topic: doubtBody.topic, question: doubtBody.question, resolved: false, _idUser: req.user._id, imagePath: imagePath });
             await User.findByIdAndUpdate(req.user._id, { $push: { _idDoubt: doubt._id } });
 
-            res.status(201).send({ message: "Se ha creado tu consulta", doubt });
+            res.status(201).send({ message: "Se ha creado tu duda", doubt });
         } catch (error) {
-            res.status(500).send({ message: "Ha habido un problema al crear la consulta" });
+            res.status(500).send({ message: "Ha habido un problema al crear la consulta", err: error });
         }
     },
 
@@ -111,10 +101,6 @@ const DoubtController = {
 
     async getDoubtById(req, res) {
         try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
-
             const { _id } = req.params;
             const doubt = await Doubt.findById(_id);
 
@@ -222,16 +208,22 @@ const DoubtController = {
 
     async deleteDoubt(req, res) {
         try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
-
             const { doubtId } = req.params;
 
             const deletedDoubt = await Doubt.findByIdAndDelete(doubtId);
 
             if (!deletedDoubt) {
                 return res.status(404).send({ message: "La consulta no existe" });
+            }
+
+            if (deletedDoubt.imagePath) {
+                const imagePath = `./uploads${deletedDoubt.imagePath}`;
+
+                fs.unlink(imagePath, (err) => {
+                    if (err) {
+                        console.error("Error al eliminar la imagen:", err);
+                    }
+                });
             }
 
             res.status(200).send({ message: "Consulta eliminada exitosamente" });
