@@ -1,14 +1,11 @@
 const Doubt = require('../models/Doubt');
 const User = require('../models/User');
 const upload = require('../middleware/upload');
+const fs = require('fs');
 
 const DoubtController = {
   async createDoubt(req, res) {
     try {
-      if (!req.user) {
-        return res.status(401).send({ message: 'No estás autenticado' });
-      }
-
       const { topic, question } = req.body;
 
       if (!topic || !question) {
@@ -17,21 +14,22 @@ const DoubtController = {
           .send({ message: 'Tienes que completar todos los campos' });
       }
 
-      let imagePath = ''; // inicializo la url de la imagen como un string vacio
-
       const doubtBody = req.body;
-      // uso el upload.single, para manejar la carga de la imagen
-      upload.single('image')(req, res, async function (err) {
-        if (req.file) {
-          // si se carga una imagen, actualizamos imagePath
-          imagePath = `/uploads/${req.file.filename}`;
-        }
-      });
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+
       const doubt = await Doubt.create({
-        ...doubtBody,
+        topic: doubtBody.topic,
+        question: doubtBody.question,
+        resolved: false,
         _idUser: req.user._id,
-        imagePath,
+        imagePath: imagePath,
       });
+      await User.findByIdAndUpdate(req.user._id, {
+        $push: { _idDoubt: doubt._id },
+      });
+
+      res.status(201).send({ message: 'Se ha creado tu duda', doubt });
+
       await User.findByIdAndUpdate(req.user._id, {
         $push: { _idDoubt: doubt._id },
       });
@@ -43,7 +41,6 @@ const DoubtController = {
         .send({ message: 'Ha habido un problema al crear la consulta' });
     }
   },
-
   async updateDoubt(req, res) {
     try {
       if (!req.user) {
@@ -60,12 +57,10 @@ const DoubtController = {
           .send({ message: 'No se encontró ninguna consulta para actualizar' });
       }
 
-      res
-        .status(200)
-        .send({
-          message: 'Consulta actualizada exitosamente',
-          doubt: updatedDoubt,
-        });
+      res.status(200).send({
+        message: 'Consulta actualizada exitosamente',
+        doubt: updatedDoubt,
+      });
     } catch (error) {
       console.error(error);
       res
@@ -89,12 +84,10 @@ const DoubtController = {
         return res.status(404).send({ message: 'La consulta no existe' });
       }
 
-      res
-        .status(200)
-        .send({
-          message: 'Consulta actualizada exitosamente',
-          doubt: updatedDoubt,
-        });
+      res.status(200).send({
+        message: 'Consulta actualizada exitosamente',
+        doubt: updatedDoubt,
+      });
     } catch (error) {
       console.error(error);
       res
@@ -121,12 +114,10 @@ const DoubtController = {
           .send({ message: 'No se encontró ninguna consulta con ese tema' });
       }
 
-      res
-        .status(200)
-        .send({
-          message: 'Consulta actualizada exitosamente',
-          doubt: updatedDoubt,
-        });
+      res.status(200).send({
+        message: 'Consulta actualizada exitosamente',
+        doubt: updatedDoubt,
+      });
     } catch (error) {
       console.error(error);
       res
@@ -192,11 +183,9 @@ const DoubtController = {
       res.status(200).send({ message: 'Duda obtenida exitosamente', doubt });
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message: 'Ha habido un problema al obtener la duda por nombre',
-        });
+      res.status(500).send({
+        message: 'Ha habido un problema al obtener la duda por nombre',
+      });
     }
   },
 
@@ -256,12 +245,9 @@ const DoubtController = {
         .send({ message: 'La consulta se marcó como resuelta!', doubt });
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message:
-            'Ha habido un problema al actualizar el estado de la consulta',
-        });
+      res.status(500).send({
+        message: 'Ha habido un problema al actualizar el estado de la consulta',
+      });
     }
   },
 
@@ -283,20 +269,15 @@ const DoubtController = {
         return res.status(404).send({ message: 'La consulta no existe' });
       }
 
-      res
-        .status(200)
-        .send({
-          message: 'OK! La consulta fue marcada como no resuelta',
-          doubt,
-        });
+      res.status(200).send({
+        message: 'OK! La consulta fue marcada como no resuelta',
+        doubt,
+      });
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message:
-            'Ha habido un problema al actualizar el estado de la consulta',
-        });
+      res.status(500).send({
+        message: 'Ha habido un problema al actualizar el estado de la consulta',
+      });
     }
   },
 
@@ -310,8 +291,14 @@ const DoubtController = {
 
       const deletedDoubt = await Doubt.findByIdAndDelete(doubtId);
 
-      if (!deletedDoubt) {
-        return res.status(404).send({ message: 'La consulta no existe' });
+      if (deletedDoubt.imagePath) {
+        const imagePath = `./uploads${deletedDoubt.imagePath}`;
+
+        fs.unlink(imagePath, err => {
+          if (err) {
+            console.error('Error al eliminar la imagen:', err);
+          }
+        });
       }
 
       res.status(200).send({ message: 'Consulta eliminada exitosamente' });
