@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const QuerySchema = new Schema(
+const DoubtSchema = new Schema(
     {
         topic: String,
         question: String,
@@ -16,12 +16,15 @@ const QuerySchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "User",
         },
+        imagePath: {
+            type: String,
+        },
     },
     {
         timestamps: true,
     }
 );
 
-const Query = mongoose.model("Query", QuerySchema);
+const Doubt = mongoose.model("Doubt", DoubtSchema);
 
-module.exports = Query;
+module.exports = Doubt;

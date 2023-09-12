@@ -8,9 +8,9 @@ const AnswerSchema = new Schema(
             type: Number,
             default: 0,
         },
-        _idQuery: {
+        _idDoubt: {
             type: Schema.Types.ObjectId,
-            ref: "Query",
+            ref: "Doubt",
         },
         _idUser: {
             type: Schema.Types.ObjectId,

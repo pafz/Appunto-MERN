@@ -18,20 +18,15 @@ const UserSchema = new mongoose.Schema(
             required: [true, "Por favor rellena tu contraseña"],
         },
 
-        age: {
-            type: Number,
-            required: [true, "Por favor rellena tu edad"],
-        },
-
         confirmed: {
             type: Boolean,
             default: false,
         },
 
-        _idQuery: [
+        _idDoubt: [
             {
                 type: Schema.Types.ObjectId,
-                ref: "Query",
+                ref: "Doubt",
             },
         ],
 
@@ -40,6 +35,8 @@ const UserSchema = new mongoose.Schema(
         role: String,
 
         tokens: [],
+
+        avatar: String,
     },
     { timestamps: true }
 );
