@@ -1,278 +1,338 @@
-const Doubt = require("../models/Doubt");
-const User = require("../models/User");
-const upload = require("../middleware/upload");
-const fs = require("fs");
+const Doubt = require('../models/Doubt');
+const User = require('../models/User');
+const upload = require('../middleware/upload');
+const fs = require('fs');
 
 const DoubtController = {
-    async createDoubt(req, res) {
-        try {
-            const { topic, question } = req.body;
+  async createDoubt(req, res) {
+    try {
+      const { topic, question } = req.body;
 
-            if (!topic || !question) {
-                return res.status(400).send({ message: "Tienes que completar todos los campos" });
-            }
+      if (!topic || !question) {
+        return res
+          .status(400)
+          .send({ message: 'Tienes que completar todos los campos' });
+      }
 
-            const doubtBody = req.body;
-            const imagePath = req.file ? `/uploads/${req.file.filename}` : "";
+      const doubtBody = req.body;
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
-            const doubt = await Doubt.create({
-                topic: doubtBody.topic,
-                question: doubtBody.question,
-                resolved: false,
-                _idUser: req.user._id,
-                imagePath: imagePath,
-            });
-            await User.findByIdAndUpdate(req.user._id, {
-                $push: { _idDoubt: doubt._id },
-            });
+      const doubt = await Doubt.create({
+        topic: doubtBody.topic,
+        question: doubtBody.question,
+        resolved: false,
+        _idUser: req.user._id,
+        imagePath: imagePath,
+      });
+      await User.findByIdAndUpdate(req.user._id, {
+        $push: { _idDoubt: doubt._id },
+      });
 
-            res.status(201).send({ message: "Se ha creado tu duda", doubt });
+      res.status(201).send({ message: 'Se ha creado tu duda', doubt });
 
-            await User.findByIdAndUpdate(req.user._id, {
-                $push: { _idDoubt: doubt._id },
-            });
+      await User.findByIdAndUpdate(req.user._id, {
+        $push: { _idDoubt: doubt._id },
+      });
 
-            res.status(201).send({ message: "Se ha creado tu consulta", doubt });
-        } catch (error) {
-            res.status(500).send({ message: "Ha habido un problema al crear la consulta" });
-        }
-    },
-    async updateDoubt(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+      res.status(201).send({ message: 'Se ha creado tu consulta', doubt });
+    } catch (error) {
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al crear la consulta' });
+    }
+  },
+  async updateDoubt(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-            const updatedDoubt = await Doubt.findOneAndUpdate({}, req.body, {
-                new: true,
-            });
+      const updatedDoubt = await Doubt.findOneAndUpdate({}, req.body, {
+        new: true,
+      });
 
-            if (!updatedDoubt) {
-                return res.status(404).send({ message: "No se encontró ninguna consulta para actualizar" });
-            }
+      if (!updatedDoubt) {
+        return res
+          .status(404)
+          .send({ message: 'No se encontró ninguna consulta para actualizar' });
+      }
 
-            res.status(200).send({
-                message: "Consulta actualizada exitosamente",
-                doubt: updatedDoubt,
-            });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ message: "Ha habido un problema al actualizar la consulta" });
-        }
-    },
+      res.status(200).send({
+        message: 'Consulta actualizada exitosamente',
+        doubt: updatedDoubt,
+      });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al actualizar la consulta' });
+    }
+  },
 
-    async updateDoubtById(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+  async updateDoubtById(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-            const { _id } = req.params;
-            const updatedDoubt = await Doubt.findByIdAndUpdate(_id, req.body, {
-                new: true,
-            });
+      const { _id } = req.params;
+      const updatedDoubt = await Doubt.findByIdAndUpdate(_id, req.body, {
+        new: true,
+      });
 
-            if (!updatedDoubt) {
-                return res.status(404).send({ message: "La consulta no existe" });
-            }
+      if (!updatedDoubt) {
+        return res.status(404).send({ message: 'La consulta no existe' });
+      }
 
-            res.status(200).send({
-                message: "Consulta actualizada exitosamente",
-                doubt: updatedDoubt,
-            });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ message: "Ha habido un problema al actualizar la consulta" });
-        }
-    },
+      res.status(200).send({
+        message: 'Consulta actualizada exitosamente',
+        doubt: updatedDoubt,
+      });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al actualizar la consulta' });
+    }
+  },
 
-    async updateDoubtByTopic(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+  async updateDoubtByTopic(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-            const { topic } = req.params;
-            const updatedDoubt = await Doubt.findOneAndUpdate({ topic }, req.body, {
-                new: true,
-            });
-            console.log(updatedDoubt);
+      const { topic } = req.params;
+      const updatedDoubt = await Doubt.findOneAndUpdate({ topic }, req.body, {
+        new: true,
+      });
 
-            if (!updatedDoubt) {
-                return res.status(404).send({ message: "No se encontró ninguna consulta con ese tema" });
-            }
+      if (!updatedDoubt) {
+        return res
+          .status(404)
+          .send({ message: 'No se encontró ninguna consulta con ese tema' });
+      }
 
-            res.status(200).send({
-                message: "Consulta actualizada exitosamente",
-                doubt: updatedDoubt,
-            });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ message: "Ha habido un problema al actualizar la consulta" });
-        }
-    },
+      res.status(200).send({
+        message: 'Consulta actualizada exitosamente',
+        doubt: updatedDoubt,
+      });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al actualizar la consulta' });
+    }
+  },
 
-    async getAllDoubts(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+  async getAllDoubts(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-            const doubts = await Doubt.find();
+      const doubts = await Doubt.find();
 
-            res.status(200).send({ message: "Estás viendo todas las dudas", doubts });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ message: "Ha habido un problema al obtener las consultas" });
-        }
-    },
+      res.status(200).send({ message: 'Estás viendo todas las dudas', doubts });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al obtener las consultas' });
+    }
+  },
 
-    async getDoubtById(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+  async searchDoubts(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado 1' });
+      }
 
-            const { _id } = req.params;
-            const doubt = await Doubt.findById(_id).populate("_idAnswer");
+      const { text } = req.params;
+      const doubts = await Doubt.find({
+        $or: [
+          {
+            question: { $regex: new RegExp(text, 'i') },
+          },
+          { topic: { $regex: new RegExp(text, 'i') } },
+        ],
+      });
 
-            if (!doubt) {
-                return res.status(404).send({ message: "La duda no existe" });
-            }
+      res.status(200).send({ message: 'Estás viendo todas las dudas', doubts });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al obtener las consultas' });
+    }
+  },
 
-            res.status(200).send({ message: "Duda obtenida exitosamente", doubt });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ message: "Ha habido un problema al obtener la duda por ID" });
-        }
-    },
+  async getDoubtById(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-    async getDoubtByTopic(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+      const { _id } = req.params;
+      const doubt = await Doubt.findById(_id).populate('_idAnswer');
 
-            const { topic } = req.params;
-            const doubt = await Doubt.findOne({ topic });
+      if (!doubt) {
+        return res.status(404).send({ message: 'La duda no existe' });
+      }
 
-            if (!doubt) {
-                return res.status(404).send({ message: "No se encontró ninguna duda con ese topico" });
-            }
+      res.status(200).send({ message: 'Duda obtenida exitosamente', doubt });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al obtener la duda por ID' });
+    }
+  },
 
-            res.status(200).send({ message: "Duda obtenida exitosamente", doubt });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({
-                message: "Ha habido un problema al obtener la duda por nombre",
-            });
-        }
-    },
+  async getDoubtByTopic(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-    async getEverything(req, res) {
-        try {
-            const doubts = await Doubt.find()
-                .populate({
-                    path: "_idUser",
-                    select: "_id name",
-                })
-                .populate({
-                    path: "_idAnswer",
-                    select: "_id reply likes",
-                    populate: {
-                        path: "_idUser",
-                        select: "_id name",
-                    },
-                })
-                .select("_id topic question _idAnswer");
+      const { topic } = req.params;
+      const doubt = await Doubt.findOne({ topic });
 
-            res.status(200).send({ message: "Datos obtenidos exitosamente", doubts });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: "Error al obtener las dudas y respuestas" });
-        }
-    },
+      if (!doubt) {
+        return res
+          .status(404)
+          .send({ message: 'No se encontró ninguna duda con ese topico' });
+      }
 
-    async markDoubtAsResolved(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+      res.status(200).send({ message: 'Duda obtenida exitosamente', doubt });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({
+        message: 'Ha habido un problema al obtener la duda por nombre',
+      });
+    }
+  },
 
-            const { doubtId } = req.params;
-            const { resolved } = req.body;
+  async getEverything(req, res) {
+    try {
+      const doubts = await Doubt.find()
+        .populate({
+          path: '_idUser',
+          select: '_id name',
+        })
+        .populate({
+          path: '_idAnswer',
+          select: '_id reply likes',
+          populate: {
+            path: '_idUser',
+            select: '_id name',
+          },
+        })
+        .select('_id topic question _idAnswer');
 
-            if (resolved === undefined) {
-                return res.status(400).send({ message: "Falta proporcionar el campo 'resolved'" });
-            }
+      res.status(200).send({ message: 'Datos obtenidos exitosamente', doubts });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .json({ message: 'Error al obtener las dudas y respuestas' });
+    }
+  },
 
-            const doubt = await Doubt.findByIdAndUpdate(doubtId, { resolved }, { new: true });
+  async markDoubtAsResolved(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-            if (!doubt) {
-                return res.status(404).send({ message: "La consulta no existe" });
-            }
+      const { doubtId } = req.params;
+      const { resolved } = req.body;
 
-            res.status(200).send({ message: "La consulta se marcó como resuelta!", doubt });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({
-                message: "Ha habido un problema al actualizar el estado de la consulta",
-            });
-        }
-    },
+      if (resolved === undefined) {
+        return res
+          .status(400)
+          .send({ message: "Falta proporcionar el campo 'resolved'" });
+      }
 
-    async markDoubtAsUnresolved(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+      const doubt = await Doubt.findByIdAndUpdate(
+        doubtId,
+        { resolved },
+        { new: true }
+      );
 
-            const { doubtId } = req.params;
+      if (!doubt) {
+        return res.status(404).send({ message: 'La consulta no existe' });
+      }
 
-            const doubt = await Doubt.findByIdAndUpdate(doubtId, { resolved: false }, { new: true });
+      res
+        .status(200)
+        .send({ message: 'La consulta se marcó como resuelta!', doubt });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({
+        message: 'Ha habido un problema al actualizar el estado de la consulta',
+      });
+    }
+  },
 
-            if (!doubt) {
-                return res.status(404).send({ message: "La consulta no existe" });
-            }
+  async markDoubtAsUnresolved(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-            res.status(200).send({
-                message: "OK! La consulta fue marcada como no resuelta",
-                doubt,
-            });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({
-                message: "Ha habido un problema al actualizar el estado de la consulta",
-            });
-        }
-    },
+      const { doubtId } = req.params;
 
-    async deleteDoubt(req, res) {
-        try {
-            if (!req.user) {
-                return res.status(401).send({ message: "No estás autenticado" });
-            }
+      const doubt = await Doubt.findByIdAndUpdate(
+        doubtId,
+        { resolved: false },
+        { new: true }
+      );
 
-            const { doubtId } = req.params;
+      if (!doubt) {
+        return res.status(404).send({ message: 'La consulta no existe' });
+      }
 
-            const deletedDoubt = await Doubt.findByIdAndDelete(doubtId);
+      res.status(200).send({
+        message: 'OK! La consulta fue marcada como no resuelta',
+        doubt,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({
+        message: 'Ha habido un problema al actualizar el estado de la consulta',
+      });
+    }
+  },
 
-            if (deletedDoubt.imagePath) {
-                const imagePath = `./uploads${deletedDoubt.imagePath}`;
+  async deleteDoubt(req, res) {
+    try {
+      if (!req.user) {
+        return res.status(401).send({ message: 'No estás autenticado' });
+      }
 
-                fs.unlink(imagePath, (err) => {
-                    if (err) {
-                        console.error("Error al eliminar la imagen:", err);
-                    }
-                });
-            }
+      const { doubtId } = req.params;
 
-            res.status(200).send({ message: "Consulta eliminada exitosamente" });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ message: "Ha habido un problema al eliminar la consulta" });
-        }
-    },
+      const deletedDoubt = await Doubt.findByIdAndDelete(doubtId);
+
+      if (deletedDoubt.imagePath) {
+        const imagePath = `./uploads${deletedDoubt.imagePath}`;
+
+        fs.unlink(imagePath, err => {
+          if (err) {
+            console.error('Error al eliminar la imagen:', err);
+          }
+        });
+      }
+
+      res.status(200).send({ message: 'Consulta eliminada exitosamente' });
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: 'Ha habido un problema al eliminar la consulta' });
+    }
+  },
 };
 
 module.exports = DoubtController;
