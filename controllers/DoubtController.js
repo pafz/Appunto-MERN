@@ -14,6 +14,7 @@ const DoubtController = {
           .send({ message: 'Tienes que completar todos los campos' });
       }
 
+<<<<<<< HEAD
       const doubtBody = req.body;
       const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
 
@@ -29,6 +30,18 @@ const DoubtController = {
       });
 
       res.status(201).send({ message: 'Se ha creado tu duda', doubt });
+=======
+            const doubtBody = req.body;
+            const imagePath = req.file ? `/uploads/${req.file.filename}` : "/uploads/no-pic-loaded.jpeg";
+
+            const doubt = await Doubt.create({
+                topic: doubtBody.topic,
+                question: doubtBody.question,
+                resolved: false,
+                _idUser: req.user._id,
+                imagePath: imagePath,
+            });
+>>>>>>> 9b3e9d6 (Added changes in several endpoints)
 
       await User.findByIdAndUpdate(req.user._id, {
         $push: { _idDoubt: doubt._id },
@@ -131,7 +144,18 @@ const DoubtController = {
         return res.status(401).send({ message: 'No estás autenticado' });
       }
 
+<<<<<<< HEAD
       const doubts = await Doubt.find();
+=======
+            const doubts = await Doubt.find().populate({
+                path: "_idAnswer",
+                select: "_id reply likes _idUser",
+                populate: {
+                    path: "_idUser",
+                    select: "_id name role",
+                },
+            });
+>>>>>>> 9b3e9d6 (Added changes in several endpoints)
 
       res.status(200).send({ message: 'Estás viendo todas las dudas', doubts });
     } catch (error) {
@@ -142,6 +166,7 @@ const DoubtController = {
     }
   },
 
+<<<<<<< HEAD
   async searchDoubts(req, res) {
     try {
       if (!req.user) {
@@ -157,6 +182,19 @@ const DoubtController = {
           { topic: { $regex: new RegExp(text, 'i') } },
         ],
       });
+=======
+    async getDoubtById(req, res) {
+        try {
+            const { _id } = req.params;
+            const doubt = await Doubt.findById(_id).populate({
+                path: "_idAnswer",
+                select: "_id reply likes _idUser",
+                populate: {
+                    path: "_idUser",
+                    select: "_id name role",
+                },
+            });
+>>>>>>> 9b3e9d6 (Added changes in several endpoints)
 
       res.status(200).send({ message: 'Estás viendo todas las dudas', doubts });
     } catch (error) {
